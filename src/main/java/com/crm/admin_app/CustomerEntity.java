@@ -12,7 +12,7 @@ public class CustomerEntity {
 
     @Id
     @Column(name="customer_id", nullable=false,unique=true,length=10)
-    private int customerId;
+    private String customerId;
 
     @Column(name="customer_name",nullable=false)
     private String customerName;
@@ -23,25 +23,49 @@ public class CustomerEntity {
     @Column(name="active")
     private String active;
 
+
+    //コンストラクタ
     public CustomerEntity(){
     }
 
-    public CustomerEntity(int customerId,String customerName,LocalDate date,String active){
+    public CustomerEntity(String customerId,String customerName,LocalDate date,String active){
         this.customerId = customerId;
         this.customerName = customerName;
         this.date = date;
         this.active = active;
     }
 
-    public void setCustomerId(int customerId){
+    //ゲッターとセッター
+
+    public void setCustomerId(String customerId){
         this.customerId=customerId;
     }
 
-    public int getCustomerId(){
+    public String getCustomerId(){
         return customerId;
     }
 
     public void setCustomerName(String customerName){
         this.customerName=customerName;
+    }
+
+    public String getCustomerName(){
+        return customerName;
+    }
+
+    public void setDate(LocalDate date){
+        this.date=date;
+    }
+
+    public LocalDate getDate(){
+        return date;
+    }
+
+    public void setActive(String active){
+        this.active=active;
+    }
+
+    public String getActive(){
+        return active;
     }
 }
