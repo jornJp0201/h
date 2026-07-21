@@ -39,15 +39,15 @@
 <body>
     <h1>新規登録</h1>
     <div>
-        <form th:action="@{/customers/create/All}" method="post" >
-           <h3>顧客名</h3>
+        <form th:action="@{/customers/create/All/Save}" method="post" >
+           <h3>顧客名</h3> 
                  <input type="text" class="input-field" name="customerName" placeholder="顧客名">
            <h3>顧客メール</h3>
                  <input type="text" class="input-field" name="customerEmail" placeholder="顧客メール">
-           <h3>日付</h3>
+           <h3>日付</h3> 
                  <input type="date" class="input-field" name="date" placeholder="日付">
            <h3>備考</h3>
-                  <textarea class="input-field" name="text" placeholder="備考"></textarea>
+                  <textarea class="input-field" name="text" placeholder="取引内容"></textarea>
 
             <button type="submit" class="send-btn">登録</button>
 

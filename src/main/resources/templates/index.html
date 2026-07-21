@@ -3,10 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>顧客管理システム - 一覧</title>
+    <script src="script.js" defer></script>
 </head>
 <body>
     <h1>顧客一覧（管理者用）</h1>
-    
+
+    <a th:href="@{/create}">新規登録</a>
+
+    <div id="loading-overlay" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); color: white; text-align: center; padding-top: 20%; font-size: 24px; z-index: 9999;">
+        <div>データを読み込み中...</div>
+    </div>
+
+    <div id="content-area" style="display: none; margin-top: 20px;">
+        <h2>顧客一覧</h2>
+    <span th:if="${errorMessage != null}">
+        <p th:text="${errorMessage}"></p>
+        <a>HTML側での操作が正常に完了しませんでした</a>
+    </span>
+
+    <span th:if="${successMessage != null}">
+
+        <p th:text="${successMessage}"></p>
+        <a>HTML側で連携が正常に完了しました</a>
+        <table border="1" style="border-collapse: collapse; width: 300px; text-align: center;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th>クライアントID</th>
+                    <th>クライアント名</th>
+                    <th>メールアドレス</th>
+                    <th>日付</th>
+                    <th>取引内容</th>
+                    <th>アクティブ状態</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 💡 タイムリーフ(th:each)を使って、Javaから届いたMapをループで表にする -->
+                <tr th:each="result : ${resultList}">
+                    <!-- 💡 data.xxx の「xxx」は、JavaのMyEntityクラスにあるフィールド名（ゲッター名）を書きます -->
+                    <td th:text="${result.customerId}">Id</td>
+                    <td th:text="${result.customerName}">name</td>
+                    <td th:text="${result.email}">email</td>
+                    <td th:text="${result.date}">date</td>
+                    <td th:text="${result.text}">transactionDetails</td>
+                    <td th:text="${result.active}">isActive</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </span>
+
+    <div> <!-- ここから表を出力するコード -->
+
+        
+
+        
+
+    </div>
+
+
+    <script>
+        // スリープ関数
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 💡 画面の読み込み（ロード）が完了したら自動で動くイベントリスナー
+        window.addEventListener('DOMContentLoaded', async () => {
+            const overlay = document.getElementById("loading-overlay");
+            const content = document.getElementById("content-area");
+
+            // 演出としてここで3秒待つ
+            await sleep(3000);
+
+            // 3秒経ったらロード画面を消して、Javaのデータが入った表を表示する！
+            overlay.style.display = "none";
+            content.style.display = "block";
+        });
+    </script>
    
 </body>
 </html>
