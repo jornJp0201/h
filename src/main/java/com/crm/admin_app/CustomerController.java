@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
@@ -25,16 +27,23 @@ public class CustomerController {
 
      @GetMapping("table")//ここにあとで顧客一覧を表示っせるためのmodelを作る
      public String getMethodName(Model model) { //
+
+        if (model.containsAttribute("successSave")) {
+                model.addAttribute("successSave", "保存に成功しました");
+            }else{
+                model.addAttribute("errorSave", "保存に失敗しました");
+            }
        
         try{
             List<CustomerEntity> resultList = customerService.outputCustomer(); //顧客情報の出力
             model.addAttribute("successMessage","javaとの通信に成功しました");
-            model.addAttribute("customers", resultList);
-            return "redirect:/index";
+            model.addAttribute("resultList", resultList);
+            System.out.println("データ個数"+resultList.size());
+            return "index";
         }catch(Exception e){
             model.addAttribute("errorMessage","javaとの通信に失敗しました");
-            model.addAttribute("customers",emptyList);
-            return "redirect:/index";
+            model.addAttribute("resultList", emptyList);
+            return "index";
         }
      }
      
@@ -42,14 +51,16 @@ public class CustomerController {
      @PostMapping("/create/All/Save")
          public String save(
             @ModelAttribute CustomerEntity customerEntity,
-            Model model
+            RedirectAttributes redirectAttributes
          ){
             try{
                 customerService.saveCustomer(customerEntity);   
-                model.addAttribute("successSave","保存に成功しました");
+                redirectAttributes.addFlashAttribute("successSave", "保存に成功しました");
                 return "redirect:/customers/table";
             }catch(Exception e){
-                model.addAttribute("errorSave","保存に失敗しました");
+                System.err.println("============ ❌ 保存失敗のエラー内容 ============");
+                e.printStackTrace(); 
+                System.err.println("==================================================");
                 return "redirect:/customers/table";
             }
     }
@@ -59,6 +70,7 @@ public class CustomerController {
 
 
 @Service
+@Transactional
 class CustomerService{
     private final CostomerRepository costomerRepository;
 
@@ -66,10 +78,11 @@ class CustomerService{
         this.costomerRepository = costomerRepository;
     }
 
+    @Transactional
     public void saveCustomer(CustomerEntity customerEntity){//顧客用法の保存
         costomerRepository.save(customerEntity);
     }
-
+    @Transactional(readOnly = true)
     public  List<CustomerEntity> outputCustomer(){ //顧客情報の出力
         return costomerRepository.findAll();
     }
