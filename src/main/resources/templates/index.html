@@ -14,18 +14,27 @@
         <div>データを読み込み中...</div>
     </div>
 
-    <div id="content-area" style="display: none; margin-top: 20px;">
+    <div id="content-area" style="display:none;margin-top: 20px;">
         <h2>顧客一覧</h2>
+
+     <span th:if="${successMessage != null}">
+        <p th:text="${successMessage}"></p>
+        <a>HTML側で連携が正常に完了しました</a>
+    </span>
+
+    <span th:if="${successSave != null}">
+            <p th:text="${successSave}"></p>
+    </span>
+
     <span th:if="${errorMessage != null}">
         <p th:text="${errorMessage}"></p>
         <a>HTML側での操作が正常に完了しませんでした</a>
     </span>
 
-    <span th:if="${successMessage != null}">
+     
 
-        <p th:text="${successMessage}"></p>
-        <a>HTML側で連携が正常に完了しました</a>
-        <table border="1" style="border-collapse: collapse; width: 300px; text-align: center;">
+        
+        <table border="1" style="border-collapse: collapse; width: 800px; text-align: center;">
             <thead>
                 <tr style="background-color: #f2f2f2;">
                     <th>クライアントID</th>
@@ -42,7 +51,7 @@
                     <!-- 💡 data.xxx の「xxx」は、JavaのMyEntityクラスにあるフィールド名（ゲッター名）を書きます -->
                     <td th:text="${result.customerId}">Id</td>
                     <td th:text="${result.customerName}">name</td>
-                    <td th:text="${result.email}">email</td>
+                    <td th:text="${result.customerEmail}">email</td>
                     <td th:text="${result.date}">date</td>
                     <td th:text="${result.text}">transactionDetails</td>
                     <td th:text="${result.active}">isActive</td>
@@ -50,7 +59,7 @@
             </tbody>
         </table>
 
-    </span>
+    
 
     <div> <!-- ここから表を出力するコード -->
 

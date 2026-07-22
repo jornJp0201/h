@@ -15,12 +15,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 
+
 @Entity
 @Table(name="customers")
 public class CustomerEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY) //これを使用することでcustomerIdが自動で生成され、採番の衝突を防ぐことができる
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // PostgreSQLの BIGSERIAL / IDENTITY 列に対応 //これを使用することでcustomerIdが自動で生成され、採番の衝突を防ぐことができる
     private Long customerId;
 
     @Column(name="customer_name",nullable=false)
@@ -34,6 +35,7 @@ public class CustomerEntity {
     @PastOrPresent(message="日付は過去現在にする必要があります")
     @NotNull(message="日付は必須です")
     private LocalDate date;
+    
 
     @Column(name="text",nullable=true)
     private String text;
@@ -88,6 +90,8 @@ public class CustomerEntity {
     public LocalDate getDate(){
         return date;
     }
+        
+    
 
     public void setText(String text){
         this.text=text;
@@ -104,4 +108,5 @@ public class CustomerEntity {
     public Boolean getActive(){
         return active;
     }
+
 }
