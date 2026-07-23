@@ -3,6 +3,10 @@ package com.crm.admin_app;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.domain.Page;      // 👈 追加
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,11 +14,15 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
+
+
 
 
 @Controller
@@ -37,14 +45,39 @@ public class CustomerController {
     }
 
      @GetMapping("/table")//ここにあとで顧客一覧を表示っせるためのmodelを作る
-     public String getMethodName(Model model) { //
+     public String getMethodName(
+        @RequestParam(name = "keyword", required = false) String keyword,
+        @RequestParam(name = "active", required = false) Boolean active,
+        @RequestParam(name = "sortField", defaultValue = "customerId") String sortField,
+        @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir,
+        @RequestParam(name = "page", defaultValue = "1") int page,
+        Model model
+    ) { //
 
        
         try{
-            List<CustomerEntity> resultList = customerService.outputCustomer(); //顧客情報の出力
+            int pageSize = 5;
+
+        // 検索・ソート・ページネーションを実行
+             Page<CustomerEntity> resultList = customerService.searchCustomers(keyword, active, page, pageSize, sortField, sortDir);
+
+             String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
+
+        // 💡 画面側に渡すデータ
+            model.addAttribute("resultList", resultList.getContent()); // 現在のページのリストデータ
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", resultList.getTotalPages()); // 総ページ数
+            model.addAttribute("totalItems", resultList.getTotalElements()); // 総データ件数
+        
+            model.addAttribute("keyword", keyword);
+            model.addAttribute("active", active);
+            model.addAttribute("sortField", sortField);
+            model.addAttribute("sortDir", sortDir);
+            model.addAttribute("reverseSortDir", reverseSortDir);
+          
             model.addAttribute("successMessage","javaとの通信に成功しました");
             model.addAttribute("resultList", resultList);
-            System.out.println("データ個数"+resultList.size());//データ確認用
+            
             return "index";
         }catch(Exception e){
             System.err.println("============ ❌ 保存失敗のエラー内容 ============");
@@ -70,7 +103,7 @@ public class CustomerController {
             
                 // 💡 ポイント: "redirect:" を使わず、直接 "create" (HTML) を返す！
                 // これにより入力途中の値とエラー情報が保持されたまま登録画面が再表示される
-                 model.addAttribute("errorSave", "不正な入力が検知されました");
+                 model.addAttribute("errorSave", "不正な入力が検知されました。*がついているところは必須です。");
                 return "create";
         }
 
@@ -87,6 +120,41 @@ public class CustomerController {
                 return "create";
             }
     }
+
+    @GetMapping("/edit/{id}")
+    public String edit(
+        @PathVariable("id") Long id,
+        Model model
+    ) {
+         try{
+            CustomerEntity customer=customerService.getCustomerId(id);
+            model.addAttribute("customerEntity",customer);
+            return "edit";
+             }catch(Exception e){
+                System.err.println("============ ❌ 失敗のエラー内容 ============");
+                e.printStackTrace(); 
+                System.err.println("==================================================");
+                model.addAttribute("errorMessage","アクセスに失敗しました");
+                //model.addAttribute("re", emptyList);
+                return "index";
+        }
+        
+    }
+
+    @GetMapping("/delet/{id}")
+    public String getMethodName(
+        @PathVariable("id") Long id,
+        Model model
+    ) {
+        try {
+            customerService.deleteCustomer(id);
+            return "redirect:/customers/table";
+        } catch (Exception e) {
+            return "redirect:/customers/table";
+        }
+    }
+    
+    
 
 
 }
@@ -108,6 +176,40 @@ class CustomerService{
     @Transactional(readOnly = true)
     public  List<CustomerEntity> outputCustomer(){ //顧客情報の出力
         return costomerRepository.findAll();
+    }
+
+    @Transactional
+    public CustomerEntity getCustomerId(long id){
+        CustomerEntity customerIn = costomerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("指定された顧客IDが存在しません: " + id));
+        return customerIn;
+    }
+
+    @Transactional
+    public void deleteCustomer(Long id) {
+    // 💡 これだけで DELETE FROM customer WHERE customer_id = ? のSQLが走ります
+    costomerRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CustomerEntity> searchCustomers(String keyword, Boolean active, int page, int size, String sortField, String sortDir) {
+        
+        // 1. ソート方向の設定
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) 
+                ? Sort.by(sortField).ascending() 
+                : Sort.by(sortField).descending();
+
+        // 2. ページ情報（何ページ目か、1ページあたりの件数、ソート）をまとめる
+        // ※Springのページは 0 スタートなので注意
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        String name = (keyword == null) ? "" : keyword;
+
+        // 3. 検索実行（Pageオブジェクトが返ってくる）
+        if (active != null) {
+            return costomerRepository.findByCustomerNameContainingAndActive(name, active, pageable);
+        } else {
+            return costomerRepository.findByCustomerNameContaining(name, pageable);
+        }
     }
 }
 

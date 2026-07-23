@@ -61,7 +61,11 @@
            <h3>備考</h3>
                   <textarea class="input-field" name="text" placeholder="取引内容"></textarea>
             <h3>アクティブ状態</h3>
-                  <input type="text" class="input-field" th:field="*{active}" placeholder="アクティブ状態" >
+                  <h3>アクティブ状態</h3>
+                  <select class="input-field" th:field="*{active}">
+                    <option value="true">有効（アクティブ）</option>
+                    <option value="false">無効（非アクティブ）</option>
+                   </select>
             
             <h3>
                 <button type="submit" class="send-btn">登録</button>

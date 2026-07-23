@@ -4,83 +4,223 @@
     <meta charset="UTF-8">
     <title>顧客管理システム - 一覧</title>
     <script src="script.js" defer></script>
+    
+    <!-- 🎨 編集ボタン用スタイルを追加 -->
+    <style>
+        .btn-edit {
+            display: inline-block;
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #2563eb; /* スタイリッシュな青 */
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-edit:hover {
+            background-color: #1d4ed8; /* ホバー時に濃い青 */
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .btn-edit:active {
+            transform: scale(0.96); /* クリック時に少し凹む効果 */
+        }
+
+        /* セル内の垂直中央揃え */
+        table td {
+            vertical-align: middle;
+            padding: 8px 4px;
+        }
+    </style>
 </head>
 <body>
     <h1>顧客一覧（管理者用）</h1>
 
     <a th:href="@{/customers/create}">新規登録</a>
+    <a th:href="@{/customers/edit}">顧客情報の編集</a>
 
     <div id="loading-overlay" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); color: white; text-align: center; padding-top: 20%; font-size: 24px; z-index: 9999;">
         <div>データを読み込み中...</div>
     </div>
 
     <div id="content-area" style="display:none;margin-top: 20px;">
+        <form th:action="@{/customers/table}" method="get" style="margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px;">
+    <span style="font-weight: bold; margin-right: 10px;">顧客検索:</span>
+    
+    <!-- 名前入力欄 -->
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="顧客名で検索..." style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; width: 200px;">
+
+    <!-- ステータス選択（ラジオまたはドロップダウン） -->
+    <select name="active" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; margin-left: 10px;">
+        <option value="" th:selected="${active == null}">すべてのステータス</option>
+        <option value="true" th:selected="${active == true}">アクティブのみ</option>
+        <option value="false" th:selected="${active == false}">非アクティブのみ</option>
+    </select>
+
+    <button type="submit" style="padding: 6px 15px; background-color: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+        検索
+    </button>
+    
+    <!-- クリアボタン -->
+    <a th:href="@{/customers/table}" style="margin-left: 10px; color: #6c757d; text-decoration: none; font-size: 14px;">条件リセット</a>
+</form>
+
+
+
         <h2>顧客一覧</h2>
 
-     <span th:if="${successMessage != null}">
-        <p th:text="${successMessage}"></p>
-        <a>HTML側で連携が正常に完了しました</a>
-    </span>
+        <span th:if="${successMessage != null}">
+            <p th:text="${successMessage}"></p>
+            <a>HTML側で連携が正常に完了しました</a>
+        </span>
 
-    <span th:if="${successSave != null}">
+        <span th:if="${successSave != null}">
             <p th:text="${successSave}"></p>
-    </span>
+        </span>
 
-    <span th:if="${errorMessage != null}">
-        <p th:text="${errorMessage}"></p>
-        <a>HTML側での操作が正常に完了しませんでした</a>
-    </span>
+        <span th:if="${errorMessage != null}">
+            <p th:text="${errorMessage}"></p>
+            <a>HTML側での操作が正常に完了しませんでした</a>
+        </span>
 
-     
+        <!-- 横幅を800pxから900pxに少し広げてボタンのスペースを確保 -->
+        <table border="1" style="border-collapse: collapse; width: 1500px; text-align: center;">
+                <thead>
+    <tr style="background-color: #f2f2f2;">
+        <!-- クライアントID ソート -->
+        <th>
+            <a th:href="@{/customers/table(keyword=${keyword}, active=${active}, sortField='customerId', sortDir=${sortField == 'customerId' ? reverseSortDir : 'asc'})}" 
+               style="text-decoration: none; color: black; display: inline-block;">
+                クライアントID
+                <!-- 💡 選択中の列：昇順なら ▲、降順なら ▼ -->
+                <span th:if="${sortField == 'customerId'}" 
+                      th:text="${sortDir == 'asc' ? ' ▲' : ' ▼'}" 
+                      style="color: #0d6efd; font-weight: bold;"></span>
+                <!-- 💡 未選択の列：うっすらと上下矢印 ⇅ を表示 -->
+                <span th:unless="${sortField == 'customerId'}" 
+                      style="color: #ccc; font-size: 12px;"> ⇅</span>
+            </a>
+        </th>
 
+        <!-- クライアント名 ソート -->
+        <th>
+            <a th:href="@{/customers/table(keyword=${keyword}, active=${active}, sortField='customerName', sortDir=${sortField == 'customerName' ? reverseSortDir : 'asc'})}" 
+               style="text-decoration: none; color: black; display: inline-block;">
+                クライアント名
+                <span th:if="${sortField == 'customerName'}" 
+                      th:text="${sortDir == 'asc' ? ' ▲' : ' ▼'}" 
+                      style="color: #0d6efd; font-weight: bold;"></span>
+                <span th:unless="${sortField == 'customerName'}" 
+                      style="color: #ccc; font-size: 12px;"> ⇅</span>
+            </a>
+        </th>
+
+        <th>メールアドレス</th>
+
+        <!-- 日付 ソート -->
+        <th>
+            <a th:href="@{/customers/table(keyword=${keyword}, active=${active}, sortField='date', sortDir=${sortField == 'date' ? reverseSortDir : 'asc'})}" 
+               style="text-decoration: none; color: black; display: inline-block;">
+                日付
+                <span th:if="${sortField == 'date'}" 
+                      th:text="${sortDir == 'asc' ? ' ▲' : ' ▼'}" 
+                      style="color: #0d6efd; font-weight: bold;"></span>
+                <span th:unless="${sortField == 'date'}" 
+                      style="color: #ccc; font-size: 12px;"> ⇅</span>
+            </a>
+        </th>
+
+        <th>取引内容</th>
+        <th>アクティブ状態</th>
+        <th>操作</th>
+    </tr>
+</thead>
         
-        <table border="1" style="border-collapse: collapse; width: 800px; text-align: center;">
-            <thead>
-                <tr style="background-color: #f2f2f2;">
-                    <th>クライアントID</th>
-                    <th>クライアント名</th>
-                    <th>メールアドレス</th>
-                    <th>日付</th>
-                    <th>取引内容</th>
-                    <th>アクティブ状態</th>
-                </tr>
-            </thead>
             <tbody>
-                <!-- 💡 タイムリーフ(th:each)を使って、Javaから届いたMapをループで表にする -->
                 <tr th:each="result : ${resultList}">
-                    <!-- 💡 data.xxx の「xxx」は、JavaのMyEntityクラスにあるフィールド名（ゲッター名）を書きます -->
                     <td th:text="${result.customerId}">Id</td>
                     <td th:text="${result.customerName}">name</td>
                     <td th:text="${result.customerEmail}">email</td>
                     <td th:text="${result.date}">date</td>
                     <td th:text="${result.text}">transactionDetails</td>
                     <td th:text="${result.active}">isActive</td>
+                    
+                    <!-- 👈 2. 各行に「編集ボタン」を追加 -->
+                    <td>
+                        <a th:href="@{/customers/edit/{id}(id=${result.customerId})}" class="btn-edit">
+                            編集
+                        </a>
+                        <!---あとでアクセス先を削除用のメソッドに飛ばす-->
+                        <a th:href="@{/customers/delet/{id}(id=${result.customerId})}" class="btn-edit">
+                            削除
+                        </a>
+                    </td>
                 </tr>
             </tbody>
-        </table>
-
+            <!-- 📄 件数表示 & ページネーションナビゲーション -->
+<div style="display: flex; justify: space-between; align-items: center; margin-top: 20px;">
     
-
-    <div> <!-- ここから表を出力するコード -->
-
-        
-
-        
-
+    <!-- 件数カウント表示 -->
+    <div style="color: #6c757d; font-size: 14px;">
+        全 <span th:text="${totalItems}">0</span> 件中 
+        <span th:text="${totalPages > 0 ? currentPage : 0}">0</span> / <span th:text="${totalPages}">0</span> ページを表示
     </div>
 
+    <!-- ページ切り替えボタン -->
+    <div th:if="${totalPages > 1}" style="display: flex; gap: 5px;">
+        
+        <!-- 「前へ」ボタン -->
+        <a th:if="${currentPage > 1}" 
+           th:href="@{/customers/table(keyword=${keyword}, active=${active}, sortField=${sortField}, sortDir=${sortDir}, page=${currentPage - 1})}" 
+           style="padding: 6px 12px; border: 1px solid #ccc; background: #fff; color: #0d6efd; text-decoration: none; border-radius: 4px;">
+            &laquo; 前へ
+        </a>
+
+        <!-- ページ番号ボタン（1, 2, 3...） -->
+        <span th:each="i : ${#numbers.sequence(1, totalPages)}">
+            <!-- 現在のページ（クリック不可・強調表示） -->
+            <span th:if="${currentPage == i}" 
+                  th:text="${i}" 
+                  style="padding: 6px 12px; border: 1px solid #0d6efd; background: #0d6efd; color: #fff; font-weight: bold; border-radius: 4px;"></span>
+            
+            <!-- 他のページ（リンク） -->
+            <a th:unless="${currentPage == i}" 
+               th:text="${i}" 
+               th:href="@{/customers/table(keyword=${keyword}, active=${active}, sortField=${sortField}, sortDir=${sortDir}, page=${i})}" 
+               style="padding: 6px 12px; border: 1px solid #ccc; background: #fff; color: #0d6efd; text-decoration: none; border-radius: 4px;"></a>
+        </span>
+
+        <!-- 「次へ」ボタン -->
+        <a th:if="${currentPage < totalPages}" 
+           th:href="@{/customers/table(keyword=${keyword}, active=${active}, sortField=${sortField}, sortDir=${sortDir}, page=${currentPage + 1})}" 
+           style="padding: 6px 12px; border: 1px solid #ccc; background: #fff; color: #0d6efd; text-decoration: none; border-radius: 4px;">
+            次へ &raquo;
+        </a>
+    </div>
+</div>
+        </table>
+
+        <div> <!-- ここから表を出力するコード -->
+        </div>
+    </div>
 
     <script>
         // スリープ関数
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        // 💡 画面の読み込み（ロード）が完了したら自動で動くイベントリスナー
+        // 画面の読み込み（ロード）が完了したら自動で動くイベントリスナー
         window.addEventListener('DOMContentLoaded', async () => {
             const overlay = document.getElementById("loading-overlay");
             const content = document.getElementById("content-area");
 
             // 演出としてここで3秒待つ
-            await sleep(3000);
+            await sleep(2000);
 
             // 3秒経ったらロード画面を消して、Javaのデータが入った表を表示する！
             overlay.style.display = "none";
