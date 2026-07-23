@@ -17,10 +17,7 @@ public class admin_app {
         return "redirect:/customers/table";
      }
 
-     @GetMapping("/create")
-        public String create(){
-            return "create";
-        }
+     
 
      @GetMapping("edit")
         public String edit(){
