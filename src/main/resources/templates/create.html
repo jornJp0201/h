@@ -39,19 +39,33 @@
 <body>
     <h1>新規登録</h1>
     <div>
-        <form th:action="@{/customers/create/All/Save}" method="post" >
-           <h3>顧客名</h3> 
-                 <input type="text" class="input-field" name="customerName" placeholder="顧客名">
+        <form th:action="@{/customers/create/All/Save}" method="post" th:object="${customerEntity}" >
+            <span th:if="${not#strings.isEmpty(errorSave)}">
+                 <a th:text="${errorSave}"></a>
+            </span>
+
+           <h3>*顧客名</h3> 
+                 <input type="text" class="input-field" th:field="*{customerName}" placeholder="顧客名">
+                 <div class="error-message" 
+                    th:if="${#fields.hasErrors('customerName')}" 
+                    th:errors="*{customerName}">
+                 </div>
            <h3>顧客メール</h3>
                  <input type="text" class="input-field" name="customerEmail" placeholder="顧客メール">
-           <h3>日付</h3> 
-                 <input type="date" class="input-field" name="date" placeholder="日付">
+           <h3>*日付</h3> 
+                 <input type="date" class="input-field" th:field="*{date}" placeholder="日付">
+                 <div class="error-message" 
+                    th:if="${#fields.hasErrors('date')}" 
+                    th:errors="*{date}">
+                 </div>
            <h3>備考</h3>
                   <textarea class="input-field" name="text" placeholder="取引内容"></textarea>
             <h3>アクティブ状態</h3>
-                  <input type="text" class="input-field" name="date" placeholder="アクティブ状態" value="true">
-
-            <button type="submit" class="send-btn">登録</button>
+                  <input type="text" class="input-field" th:field="*{active}" placeholder="アクティブ状態" >
+            
+            <h3>
+                <button type="submit" class="send-btn">登録</button>
+            </h3>
 
         </form>
     

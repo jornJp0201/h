@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Email;//バリデーション
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 
 
 @Entity
@@ -26,9 +27,11 @@ public class CustomerEntity {
 
     @Column(name="customer_name",nullable=false)
     @NotBlank(message="顧客名は必須です")
+    @Size(max = 40, message = "顧客名は40文字以内で入力してください")
     private String customerName;
 
     @Email(message = "有効なメールアドレスの形式で入力してください")
+    @Size(max = 50, message = "メールアドレスは50文字以内で入力してください")
     private String customerEmail;
 
     @DateTimeFormat(pattern="yyyy-MM-dd")//日付のフォーマットを指定することで整合性を保っています。
@@ -38,6 +41,7 @@ public class CustomerEntity {
     
 
     @Column(name="text",nullable=true)
+    @Size(max = 250, message = "メールアドレスは250文字以内で入力してください")
     private String text;
 
     @Column(name="active")//非表示表示用

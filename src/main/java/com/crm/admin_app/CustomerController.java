@@ -7,11 +7,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.validation.Valid;
 
 
 @Controller
@@ -25,24 +28,30 @@ public class CustomerController {
          this.customerService = customerService;
     } 
 
-     @GetMapping("table")//ここにあとで顧客一覧を表示っせるためのmodelを作る
+    @GetMapping("/create")
+        public String create(Model model){
+            if (!model.containsAttribute("customerEntity")) {  
+            model.addAttribute("customerEntity", new CustomerEntity());
+        }
+            return "create";
+    }
+
+     @GetMapping("/table")//ここにあとで顧客一覧を表示っせるためのmodelを作る
      public String getMethodName(Model model) { //
 
-        if (model.containsAttribute("successSave")) {
-                model.addAttribute("successSave", "保存に成功しました");
-            }else{
-                model.addAttribute("errorSave", "保存に失敗しました");
-            }
        
         try{
             List<CustomerEntity> resultList = customerService.outputCustomer(); //顧客情報の出力
             model.addAttribute("successMessage","javaとの通信に成功しました");
             model.addAttribute("resultList", resultList);
-            System.out.println("データ個数"+resultList.size());
+            System.out.println("データ個数"+resultList.size());//データ確認用
             return "index";
         }catch(Exception e){
+            System.err.println("============ ❌ 保存失敗のエラー内容 ============");
+            e.printStackTrace(); 
+            System.err.println("==================================================");
             model.addAttribute("errorMessage","javaとの通信に失敗しました");
-            model.addAttribute("resultList", emptyList);
+            //model.addAttribute("re", emptyList);
             return "index";
         }
      }
@@ -50,9 +59,22 @@ public class CustomerController {
     
      @PostMapping("/create/All/Save")
          public String save(
-            @ModelAttribute CustomerEntity customerEntity,
-            RedirectAttributes redirectAttributes
+            @Valid @ModelAttribute("customerEntity") CustomerEntity customerEntity, // ① @Valid でチェック実行
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes,
+            Model model
          ){
+
+            if (bindingResult.hasErrors()) {
+                System.out.println("⚠️ 入力チェックエラーが発生しました（件数: " + bindingResult.getErrorCount() + "）");
+            
+                // 💡 ポイント: "redirect:" を使わず、直接 "create" (HTML) を返す！
+                // これにより入力途中の値とエラー情報が保持されたまま登録画面が再表示される
+                 model.addAttribute("errorSave", "不正な入力が検知されました");
+                return "create";
+        }
+
+
             try{
                 customerService.saveCustomer(customerEntity);   
                 redirectAttributes.addFlashAttribute("successSave", "保存に成功しました");
@@ -61,7 +83,8 @@ public class CustomerController {
                 System.err.println("============ ❌ 保存失敗のエラー内容 ============");
                 e.printStackTrace(); 
                 System.err.println("==================================================");
-                return "redirect:/customers/table";
+                model.addAttribute("errorSave", "保存に失敗しました");
+                return "create";
             }
     }
 
