@@ -209,15 +209,15 @@
 
         <!-- フォームカード -->
         <div class="form-card">
-            <!-- コントローラーの更新メソッドにPOST送信 -->
-            <form th:action="@{/customers/edit/{id}(id=${customer.customerId})}" th:object="${customer}" method="post">
+            <!-- 編集保存用のアクション先（更新ロジックに合わせて適宜パスを調整してください） -->
+            <form th:action="@{/customers/create/All/Save}" method="post">
                 
                 <!-- 顧客ID（主キー hidden 保持 ＆ 確認用読み取り専用表示） -->
-                <input type="hidden" name="customerId" th:value="${customer.customerId}">
+                <input type="hidden" name="customerId" th:value="${customerEntity.customerId}">
                 
                 <div class="form-group">
                     <label class="form-label">クライアントID</label>
-                    <input type="text" class="input-field" th:value="${customer.customerId}" readonly>
+                    <input type="text" class="input-field" th:value="${customerEntity.customerId}" readonly>
                 </div>
 
                 <!-- 顧客名（CustomerEntity.customerName） -->
@@ -226,13 +226,13 @@
                         顧客名
                         <span class="badge-required">必須</span>
                     </label>
-                    <input type="text" class="input-field" name="customerName" th:value="${customer.customerName}" placeholder="例: 株式会社サンプル" required>
+                    <input type="text" class="input-field" name="customerName" th:value="${customerEntity.customerName}" placeholder="例: 株式会社サンプル" required>
                 </div>
 
                 <!-- メールアドレス（CustomerEntity.customerEmail） -->
                 <div class="form-group">
                     <label class="form-label">顧客メール</label>
-                    <input type="email" class="input-field" name="customerEmail" th:value="${customer.customerEmail}" placeholder="例: sample@example.com">
+                    <input type="email" class="input-field" name="customerEmail" th:value="${customerEntity.customerEmail}" placeholder="例: sample@example.com">
                 </div>
 
                 <!-- 日付（CustomerEntity.date） -->
@@ -241,7 +241,7 @@
                         日付
                         <span class="badge-required">必須</span>
                     </label>
-                    <input type="date" class="input-field" name="date" th:value="${customer.date}" required id="dateInput">
+                    <input type="date" class="input-field" name="date" th:value="${customerEntity.date}" required id="dateInput">
                 </div>
 
                 <!-- アクティブ状態（CustomerEntity.active） -->
@@ -249,11 +249,11 @@
                     <label class="form-label">アクティブ状態（表示 / 非表示）</label>
                     <div class="radio-group">
                         <label class="radio-label">
-                            <input type="radio" name="active" value="true" th:checked="${customer.active == true}">
+                            <input type="radio" name="active" value="true" th:checked="${customerEntity.active == true}">
                             <span>アクティブ（営業アプリで表示）</span>
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="active" value="false" th:checked="${customer.active == false}">
+                            <input type="radio" name="active" value="false" th:checked="${customerEntity.active == false or customerEntity.active == null}">
                             <span>非アクティブ（営業アプリで非表示）</span>
                         </label>
                     </div>
@@ -262,7 +262,7 @@
                 <!-- 取引内容 / 備考（CustomerEntity.text） -->
                 <div class="form-group">
                     <label class="form-label">備考 / 取引内容</label>
-                    <textarea class="input-field" name="text" th:text="${customer.text}" placeholder="取引内容や特記事項を入力してください"></textarea>
+                    <textarea class="input-field" name="text" th:text="${customerEntity.text}" placeholder="取引内容や特記事項を入力してください"></textarea>
                 </div>
 
                 <!-- ボタンエリア -->
